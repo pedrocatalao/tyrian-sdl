@@ -141,7 +141,7 @@ installdirs :
 .PHONY : install
 install : $(TARGET) installdirs
 	$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(bindir)/
-	$(INSTALL_DATA) NEWS README $(DESTDIR)$(docdir)/
+	$(INSTALL_DATA) NEWS README.md $(DESTDIR)$(docdir)/
 	$(INSTALL_DATA) linux/man/opentyrian.6 $(DESTDIR)$(man6dir)/opentyrian$(man6ext)
 	$(INSTALL_DATA) linux/opentyrian.desktop $(DESTDIR)$(desktopdir)/
 	$(INSTALL_DATA) linux/icons/tyrian-22.png $(DESTDIR)$(icondir)/hicolor/22x22/apps/opentyrian.png
@@ -153,7 +153,7 @@ install : $(TARGET) installdirs
 .PHONY : uninstall
 uninstall :
 	rm -f $(DESTDIR)$(bindir)/$(TARGET)
-	rm -f $(DESTDIR)$(docdir)/NEWS $(DESTDIR)$(docdir)/README
+	rm -f $(DESTDIR)$(docdir)/NEWS $(DESTDIR)$(docdir)/README.md
 	rm -f $(DESTDIR)$(man6dir)/opentyrian$(man6ext)
 	rm -f $(DESTDIR)$(desktopdir)/opentyrian.desktop
 	rm -f $(DESTDIR)$(icondir)/hicolor/22x22/apps/opentyrian.png

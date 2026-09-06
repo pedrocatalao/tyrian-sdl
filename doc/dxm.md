@@ -1,4 +1,4 @@
-# OpenTyrian as a DOS ex Machina core
+# Tyrian SDL as a DOS ex Machina core
 
 This tree builds the game twice from one source: the standalone SDL2 game
 (the Makefile, or CMake), and a **DXM core** — a dependency-free library that
@@ -66,27 +66,48 @@ Timing is wall-clock (`host->now()`), never frame-count.  Video is Mode 13h:
 320x200, INDEX8, PAR 5:6, 400 CRT lines.  Audio: the game mixes mono s16 at
 44100 Hz; the adapter duplicates to stereo for the shell.
 
-## Host requirements (changes needed in DXM)
+## What the host had to provide
 
-1. **Full keymap.**  `sc_from_sdl()` in `src/main.c` maps 15 keys.  Tyrian
-   needs the whole keyboard: Ctrl and Alt fire the sidekicks, letters and
-   Backspace type save names and cheats, F-keys and the keypad are
-   bindable.  Replace the switch with a table SDL scancode -> XT set 1 make
-   code covering 0x01..0x58.  Extended keys (arrows, Home/End/PgUp/PgDn,
-   Ins/Del, right Ctrl/Alt, keypad Enter and `/`) should report their
-   **base** code (0x48 for Up, 0x1D for right Ctrl, etc.) since `keys[]` is
-   indexed by the plain byte and that is what the adapter reads.
-2. **Reopen the module per run.**  `library.c` keeps modules open.
-   OpenTyrian has ~850 file-scope globals plus function-local statics; a
-   fresh `dlopen` per run resets all of them for free, which is the only
-   restart strategy that will not rot.  Closing and reopening around
-   `corehost_start` is enough.
-3. **Catalogue entry.**  id `tyrian`, exe `TYRIAN.EXE`, data kind
-   `freeware` from `https://camanis.net/tyrian/tyrian21.zip`, probe
-   `tyrian1.lvl`, abi 2.  The zip nests its files in a folder and may name
-   them in UPPERCASE; `unzip_extract` already flattens, and the game opens
-   uppercase names as a fallback, so no host change is needed for that.
-4. **Text input.**  `getch()` only carries ASCII for Esc/Enter/Space.  The
-   adapter derives typed characters from key state and shift on a US
-   layout, so nothing is required here; a host `getch()` with real layout
-   characters would be a future improvement.
+Two changes were made in DXM for this port, and both are general rather than
+Tyrian-specific:
+
+1. **Full keymap.**  `sc_from_sdl()` mapped 15 keys.  Tyrian needs the whole
+   keyboard: Ctrl and Alt fire the sidekicks, letters and Backspace type save
+   names and cheats, F-keys and the keypad are bindable.  It is now a table
+   from SDL scancode to XT set 1 make code covering 0x01..0x58.  Extended
+   keys (arrows, Home/End/PgUp/PgDn, Ins/Del, right Ctrl/Alt, keypad Enter
+   and `/`) report their **base** code (0x48 for Up, 0x1D for right Ctrl),
+   since the key-state array is indexed by the plain byte and that is what
+   the adapter reads.
+2. **The module is reopened per run.**  It used to stay loaded.  The game has
+   ~850 file-scope globals plus function-local statics, so a fresh `dlopen`
+   per run resets all of them for free, which is the only restart strategy
+   that will not rot.  `corehost_stop()` also fences against the audio
+   callback before the unload, so nothing is executing inside the image when
+   it goes.
+
+Still open:
+
+- **No mouse.**  `dxm_host` has no mouse at all, so the adapter reports none
+  and the game is keyboard-only inside DXM.  The standalone build has the
+  mouse.  Adding one means a new `dxm_host` entry (relative motion plus a
+  button mask, the way a DOS mouse driver reported it) and an ABI bump.
+- **Text input** comes from key state and shift on a US layout, because
+  `getch()` only carries ASCII for Esc, Enter and Space.  A host `getch()`
+  with real layout characters would be an improvement, not a requirement.
+
+## Catalogue entry
+
+For DXM's `catalogue.json`, once a release exists:
+
+    id      tyrian
+    exe     TYRIAN.EXE
+    abi     2
+    source  https://github.com/pedrocatalao/tyrian-sdl
+    module  the .dxm asset per platform-arch, with its sha256
+    data    kind freeware, https://camanis.net/tyrian/tyrian21.zip,
+            probe tyrian1.lvl
+
+The zip nests its files in a folder and may name them in UPPERCASE;
+`unzip_extract` already flattens, and the game opens uppercase names as a
+fallback, so neither needs a host change.
