@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tyrian SDL — the 1995 shooter, native on macOS, Linux and Windows</title>
+<meta name="description" content="Tyrian, the 1995 DOS shooter, as a native SDL2 game for macOS, Linux and Windows — and as a core that runs inside DOS ex Machina. Self-contained downloads, nothing to install.">
+<link rel="icon" href="icon.png">
+<meta property="og:title" content="Tyrian SDL">
+<meta property="og:description" content="The 1995 DOS shooter, native on macOS, Linux and Windows. Nothing to install.">
+<meta property="og:image" content="https://pedrocatalao.github.io/tyrian-sdl/screenshots/gameplay.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root {
+  --bg: #070a12;
+  --bg-soft: #0d1220;
+  --panel: #111827;
+  --line: #1f2a3d;
+  --ink: #e6ebf5;
+  --ink-dim: #9aa7bd;
+  --gold: #e0aa3e;
+  --gold-soft: #f0c876;
+  --cyan: #5ad1e6;
+  --radius: 14px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.65 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+/* a very quiet starfield, drawn with gradients so the page stays one file */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 74% 8%, rgba(255,255,255,.40), transparent 60%),
+    radial-gradient(1.5px 1.5px at 33% 62%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(2px 2px at 88% 47%, rgba(255,255,255,.30), transparent 60%),
+    radial-gradient(1.5px 1.5px at 57% 88%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1.5px 1.5px at 22% 92%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(900px 600px at 78% -10%, rgba(120, 60, 90, .22), transparent 70%),
+    radial-gradient(800px 500px at 8% 8%, rgba(40, 80, 140, .20), transparent 70%);
+}
+a { color: var(--cyan); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--gold-soft); }
+code, kbd, .mono {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .92em;
+}
+code { background: rgba(255,255,255,.06); padding: .12em .38em; border-radius: 5px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+img { max-width: 100%; }
+
+/* ---- hero ---- */
+header { padding: 72px 0 8px; text-align: center; }
+header img.logo {
+  width: 96px; height: 96px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 24px rgba(224,170,62,.35));
+}
+h1 {
+  font-size: clamp(2.6rem, 7vw, 4.2rem);
+  line-height: 1.03;
+  margin: 18px 0 0;
+  letter-spacing: -.02em;
+  background: linear-gradient(180deg, #fff 10%, var(--gold) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.tagline {
+  margin: 16px auto 0;
+  max-width: 40ch;
+  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+  color: var(--ink-dim);
+}
+.cta { margin: 34px 0 10px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-block;
+  padding: 13px 26px;
+  border-radius: 999px;
+  font-weight: 650;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary {
+  background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+  color: #241a05;
+  box-shadow: 0 8px 26px rgba(224,170,62,.28);
+}
+.btn-primary:hover { color: #241a05; box-shadow: 0 10px 32px rgba(224,170,62,.40); }
+.btn-ghost { border-color: var(--line); color: var(--ink); background: rgba(255,255,255,.03); }
+.btn-ghost:hover { color: var(--ink); border-color: #35486a; }
+.cta-note { color: var(--ink-dim); font-size: .9rem; margin: 0; }
+
+/* ---- shots ---- */
+figure { margin: 0; }
+.shot {
+  margin: 46px auto 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 70px rgba(0,0,0,.6);
+  display: block;
+}
+figcaption { color: var(--ink-dim); font-size: .88rem; text-align: center; margin-top: 12px; }
+
+/* ---- sections ---- */
+section { padding: 76px 0; }
+section + section { border-top: 1px solid rgba(255,255,255,.05); }
+h2 {
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
+  letter-spacing: -.01em;
+  margin: 0 0 14px;
+}
+h2 .kicker {
+  display: block;
+  font-size: .78rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.lede { color: var(--ink-dim); max-width: 62ch; margin: 0 0 28px; font-size: 1.05rem; }
+
+/* ---- download cards ---- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.card.is-yours { border-color: rgba(224,170,62,.55); box-shadow: 0 0 0 1px rgba(224,170,62,.18); }
+.card h3 { margin: 0 0 4px; font-size: 1.15rem; }
+.card .arch { color: var(--ink-dim); font-size: .85rem; margin: 0 0 16px; }
+.card ul { list-style: none; padding: 0; margin: 0 0 18px; }
+.card li { margin: 0 0 8px; }
+.card li a { display: block; }
+.card .howto { margin-top: auto; color: var(--ink-dim); font-size: .88rem; }
+.badge {
+  display: inline-block; margin-left: 8px; vertical-align: middle;
+  font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+  color: #241a05; background: var(--gold); border-radius: 999px; padding: 2px 8px; font-weight: 700;
+}
+
+/* ---- feature list ---- */
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 26px; margin-top: 30px; }
+.feature h3 { margin: 0 0 6px; font-size: 1.02rem; }
+.feature p { margin: 0; color: var(--ink-dim); font-size: .95rem; }
+
+/* ---- dxm split ---- */
+.split { display: grid; grid-template-columns: 1.05fr .95fr; gap: 44px; align-items: center; }
+@media (max-width: 820px) { .split { grid-template-columns: 1fr; gap: 28px; } }
+
+/* ---- footer ---- */
+footer { border-top: 1px solid rgba(255,255,255,.05); padding: 56px 0 70px; color: var(--ink-dim); font-size: .93rem; }
+footer h3 { color: var(--ink); font-size: .95rem; margin: 0 0 8px; }
+footer p { max-width: 68ch; }
+.footlinks { display: flex; gap: 22px; flex-wrap: wrap; margin: 22px 0 0; padding: 0; list-style: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <img class="logo" src="icon.png" alt="">
+    <h1>Tyrian SDL</h1>
+    <p class="tagline">The 1995 DOS shooter, running natively on the machine you have now.</p>
+    <div class="cta">
+      <a class="btn btn-primary" id="download" href="https://github.com/pedrocatalao/tyrian-sdl/releases/latest">Download</a>
+      <a class="btn btn-ghost" href="https://github.com/pedrocatalao/tyrian-sdl">Source on GitHub</a>
+    </div>
+    <p class="cta-note">Free. The game data is inside the download — nothing to install, nothing to hunt for.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <figure>
+    <img class="shot" src="screenshots/gameplay.png" alt="Tyrian in flight: the player's ship over a canyon, enemies and shots filling the screen, weapon and shield gauges down the right-hand side.">
+    <figcaption>Episode 1. Your ship, too many of theirs.</figcaption>
+  </figure>
+</div>
+
+<section id="downloads">
+  <div class="wrap">
+    <h2><span class="kicker">Downloads</span>Pick your machine</h2>
+    <p class="lede">Every package carries SDL2 and the freeware Tyrian 2.1 data inside it. Unpack it and play — no dependencies, no data files to find, no launcher.</p>
+
+    <div class="cards">
+      <div class="card" data-os="mac">
+        <h3>macOS</h3>
+        <p class="arch">Apple Silicon and Intel, one universal app</p>
+        <ul>
+          <li><a href="https://github.com/pedrocatalao/tyrian-sdl/releases/latest/download/opentyrian-macos-universal.zip">opentyrian-macos-universal.zip</a></li>
+        </ul>
+        <p class="howto">Unzip and open <code>OpenTyrian.app</code>. It is not notarized, so the first time: right-click the app, choose <em>Open</em>, confirm once.</p>
+      </div>
+
+      <div class="card" data-os="linux">
+        <h3>Linux</h3>
+        <p class="arch">x86_64 and arm64</p>
+        <ul>
+          <li><a href="https://github.com/pedrocatalao/tyrian-sdl/releases/latest/download/opentyrian-linux-x86_64.tar.gz">opentyrian-linux-x86_64.tar.gz</a></li>
+          <li><a href="https://github.com/pedrocatalao/tyrian-sdl/releases/latest/download/opentyrian-linux-arm64.tar.gz">opentyrian-linux-arm64.tar.gz</a></li>
+        </ul>
+        <p class="howto">Extract and run <code>./opentyrian</code>. SDL2 is linked in statically, so the binary needs nothing but glibc — X11 or Wayland, ALSA or PulseAudio, whichever you have is picked up at run time.</p>
+      </div>
+
+      <div class="card" data-os="windows">
+        <h3>Windows</h3>
+        <p class="arch">x86_64 and arm64</p>
+        <ul>
+          <li><a href="https://github.com/pedrocatalao/tyrian-sdl/releases/latest/download/opentyrian-windows-x86_64.zip">opentyrian-windows-x86_64.zip</a></li>
+          <li><a href="https://github.com/pedrocatalao/tyrian-sdl/releases/latest/download/opentyrian-windows-arm64.zip">opentyrian-windows-arm64.zip</a></li>
+        </ul>
+        <p class="howto">Unzip and run <code>opentyrian.exe</code>. The DLLs it needs travel with it.</p>
+      </div>
+    </div>
+
+    <p class="cta-note" style="margin-top:26px">
+      <a href="https://github.com/pedrocatalao/tyrian-sdl/releases">All releases and changelogs</a> ·
+      Saves and settings live in <code>~/.config/opentyrian</code> or <code>%APPDATA%\OpenTyrian</code>, so they survive an update.
+    </p>
+  </div>
+</section>
+
+<section id="game">
+  <div class="wrap">
+    <h2><span class="kicker">The game</span>You are Trent Hawkins</h2>
+    <p class="lede">A vertical scrolling shooter set in the year 20,031: fly against MicroSol across four episodes, spend what you salvage on hulls, guns and sidekicks, and try to keep the screen from filling up. Story mode, one- and two-player arcade, and networked multiplayer.</p>
+
+    <div class="features">
+      <div class="feature">
+        <h3>The original game, unchanged</h3>
+        <p>Same levels, same weapons, same music. This is the DOS game's own logic, not a remake.</p>
+      </div>
+      <div class="feature">
+        <h3>Scalers and full screen</h3>
+        <p>Nearest, Scale2x, Scale3x and hq2x through hq4x, at integer or 4:3 scaling, windowed or full screen.</p>
+      </div>
+      <div class="feature">
+        <h3>Keyboard, mouse or gamepad</h3>
+        <p>Rebindable keys, joystick and gamepad support, mouse control in the menus and in flight.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="dxm">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <h2><span class="kicker">Also</span>Inside a 486 that never existed</h2>
+        <p class="lede">The same source builds as a core for <a href="https://github.com/pedrocatalao/dos-ex-machina">DOS ex Machina</a>, which boots a simulated PC, drops you at a <code>C:\&gt;</code> prompt, and runs the game on a CRT you can count the scanlines on.</p>
+        <p class="lede">The <code>.dxm</code> files on the releases page are that build — the game as a loadable module, one per platform. They are not standalone programs; DXM opens them.</p>
+        <p><a class="btn btn-ghost" href="https://github.com/pedrocatalao/dos-ex-machina">What is DOS ex Machina?</a></p>
+      </div>
+      <figure>
+        <img class="shot" style="margin-top:0" src="screenshots/dxm.jpg" alt="A beige 486 tower and CRT monitor rendered on screen, showing the Tyrian title screen and main menu behind the curve of the glass.">
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="built">
+  <div class="wrap">
+    <h2><span class="kicker">For the curious</span>One source, two very different hosts</h2>
+    <p class="lede">The game code does not know what it is running on. Everything platform-specific — the screen, the keyboard, the clock, the audio device, the files — sits behind a single header, <code>src/platform.h</code>. One implementation drives SDL2 for the standalone builds; another maps the same seam onto DXM's host interface, linking no SDL at all.</p>
+    <p class="lede">That is what lets the identical code ship as a desktop game and as a module inside a simulated machine, and it is checked on every commit: five platforms built, and the module audited for a single stray symbol.</p>
+    <p><a href="https://github.com/pedrocatalao/tyrian-sdl/blob/main/doc/dxm.md">How the core works</a> · <a href="https://github.com/pedrocatalao/tyrian-sdl">Read the source</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h3>Credits</h3>
+    <p>Tyrian was created by Eclipse Productions and published by Epic MegaGames in 1995; the Tyrian 2.1 data files were later released as freeware. This port is derived from <a href="https://github.com/opentyrian/opentyrian">OpenTyrian</a> by the OpenTyrian Development Team, where the engine and nearly all of this code come from. It is not affiliated with or endorsed by them.</p>
+    <p>Licensed under the GNU General Public License, version 2 or later.</p>
+    <ul class="footlinks">
+      <li><a href="https://github.com/pedrocatalao/tyrian-sdl">GitHub</a></li>
+      <li><a href="https://github.com/pedrocatalao/tyrian-sdl/releases">Releases</a></li>
+      <li><a href="https://github.com/opentyrian/opentyrian">OpenTyrian</a></li>
+      <li><a href="https://github.com/pedrocatalao/dos-ex-machina">DOS ex Machina</a></li>
+      <li><a href="https://tyrian2k.proboards.com/board/5">Forums</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+// Point the hero button straight at the file for whatever this is, and mark
+// that card.  Everything still works with JS off: the button falls back to
+// the releases page and every download is listed below.
+(function () {
+  var ua = navigator.userAgent;
+  var os = /Mac|iPhone|iPad/.test(ua) ? "mac"
+         : /Win/.test(ua) ? "windows"
+         : /Linux|Android|X11/.test(ua) ? "linux"
+         : null;
+  if (!os) return;
+
+  var arm = /arm64|aarch64/i.test(ua);
+  var base = "https://github.com/pedrocatalao/tyrian-sdl/releases/latest/download/";
+  var file = {
+    mac: "opentyrian-macos-universal.zip",
+    linux: "opentyrian-linux-" + (arm ? "arm64" : "x86_64") + ".tar.gz",
+    windows: "opentyrian-windows-" + (arm ? "arm64" : "x86_64") + ".zip"
+  }[os];
+  var label = { mac: "Download for macOS", linux: "Download for Linux", windows: "Download for Windows" }[os];
+
+  var btn = document.getElementById("download");
+  btn.href = base + file;
+  btn.textContent = label;
+
+  var card = document.querySelector('.card[data-os="' + os + '"]');
+  if (card) {
+    card.classList.add("is-yours");
+    var h = card.querySelector("h3");
+    if (h) h.insertAdjacentHTML("beforeend", '<span class="badge">yours</span>');
+  }
+})();
+</script>
+
+</body>
+</html>

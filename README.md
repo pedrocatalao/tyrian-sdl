@@ -15,7 +15,7 @@ in 20,031 where you play as Trent Hawkins, a skilled fighter-pilot employed
 to fight MicroSol and save the galaxy.  It features a story mode, one- and
 two-player arcade modes, and networked multiplayer.
 
-<img src="doc/screenshots/gameplay.png" width="80%" alt="Tyrian, episode 1">
+<img src="docs/screenshots/gameplay.png" width="80%" alt="Tyrian, episode 1">
 
 ## Downloads
 
@@ -66,7 +66,7 @@ archive may be uppercase; the script lowercases them, as does
 The same source also builds as a core for **[DOS ex Machina][dxm]**, which
 runs it inside a simulated 486 with a CRT you can see the scanlines on.
 
-<img src="doc/screenshots/dxm.jpg" width="80%" alt="Tyrian running inside DOS ex Machina">
+<img src="docs/screenshots/dxm.jpg" width="80%" alt="Tyrian running inside DOS ex Machina">
 
 The `.dxm` files on the [releases page][rel] are that build — the game as a
 loadable module, one per platform.  They are not standalone programs; DXM
