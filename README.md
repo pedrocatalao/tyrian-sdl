@@ -1,4 +1,4 @@
-# OpenTyrian
+# Tyrian SDL
 <img src="linux/icons/tyrian-128.png" width="128" height="128" align="right" alt="OpenTyrian icon">
 
 [![Linux](https://github.com/pedrocatalao/tyrian-sdl/actions/workflows/linux.yml/badge.svg)](https://github.com/pedrocatalao/tyrian-sdl/actions/workflows/linux.yml)
