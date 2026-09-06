@@ -69,7 +69,7 @@ cat > "$OUT/Contents/Info.plist" <<PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>      <string>opentyrian</string>
-    <key>CFBundleIdentifier</key>      <string>org.opentyrian.OpenTyrian</string>
+    <key>CFBundleIdentifier</key>      <string>net.pedrocatalao.tyrian-sdl</string>
     <key>CFBundleName</key>            <string>OpenTyrian</string>
     <key>CFBundleDisplayName</key>     <string>OpenTyrian</string>
     <key>CFBundlePackageType</key>     <string>APPL</string>
